@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>שיעורי בית – שיפוע של פונקציה בנקודה</title>
+<style>
+:root{--bg:#f6f7fb;--fg:#1d2433;--card:#fff;--muted:#6b7385;--accent:#3a5bd9;--ok:#1f8a4c;--okbg:#e5f5ec;--bad:#c4372c;--badbg:#fbe9e7;--line:#dde1ea;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13161d;--fg:#e7eaf2;--card:#1d222d;--muted:#98a1b6;--accent:#8aa2ff;--ok:#5fd08d;--okbg:#17342470;--bad:#ff8a7e;--badbg:#44211e70;--line:#2f3645}}
+:root[data-theme="dark"]{--bg:#13161d;--fg:#e7eaf2;--card:#1d222d;--muted:#98a1b6;--accent:#8aa2ff;--ok:#5fd08d;--okbg:#17342470;--bad:#ff8a7e;--badbg:#44211e70;--line:#2f3645}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Heebo","Segoe UI",Arial,sans-serif;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:1.25rem;margin:0}
+.sub{color:var(--muted);font-size:.9rem}
+.score{font-weight:700;color:var(--accent)}
+button{font:inherit;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:6px 14px}
+button.ghost{background:transparent;color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:16px 0}
+.card h2{font-size:1.05rem;margin:0 0 6px}
+.card p{margin:4px 0 10px}
+.part{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;padding:6px 8px;border-radius:8px}
+.part .lbl{flex:1 1 240px}
+select{font:inherit;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);max-width:100%}
+.part.ok{background:var(--okbg)}.part.bad{background:var(--badbg)}
+.why{flex-basis:100%;font-size:.88rem;color:var(--muted);display:none}
+.part.ok .why,.part.bad .why{display:block}
+.mark{font-weight:700}.ok .mark{color:var(--ok)}.bad .mark{color:var(--bad)}
+.sol{display:none;margin-top:10px;padding:10px 12px;border-right:4px solid var(--accent);background:var(--bg);border-radius:6px;font-size:.93rem}
+.sol.show,.teacher .sol{display:block}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.gr{margin:8px 0;text-align:center}.gr small{display:block;color:var(--muted)}
+.note{color:var(--muted);font-size:.85rem}
+.grade{font-size:3.2rem;font-weight:800;color:var(--accent);line-height:1.1}
+#res ul{padding-inline-start:20px;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>שיפוע של פונקציה בנקודה</h1><div class="sub">שיעורי בית · מבוא לנגזרת</div></div>
+  <div style="display:flex;gap:8px;align-items:center"><span class="score" id="score">0 / 0</span><button class="ghost" id="tm">מצב מורה</button></div>
+</header>
+<div id="qs"></div>
+<p class="note">בחרו תשובה בכל סעיף ולחצו "בדיקה". בשאלות השרטוט – שרטטו במחברת ואז הציגו פתרון להשוואה.</p>
+<div class="card"><h2>סיום וציון</h2><p>כשענית על כל הסעיפים, לחצו על הכפתור לקבלת הציון.</p><div class="actions"><button id="fin" onclick="finish()">סיום והצגת ציון</button></div><div id="res"></div></div>
+</div>
+<script>
+function G(c){
+const W=480,H=300,L=30,R=10,T=10,B=22,[x0,x1]=c.xr;let S=[];
+if(c.f)for(let i=0;i<=200;i++){const x=x0+(x1-x0)*i/200;S.push([x,c.f(x)])}
+if(c.fp){let y=0,n=400,h=(x1-x0)/n;for(let i=0;i<=n;i++){const x=x0+h*i;if(i)y+=(c.fp(x)+c.fp(x-h))/2*h;S.push([x,y])}}
+const yAt=x=>S.reduce((b,p)=>Math.abs(p[0]-x)<Math.abs(b[0]-x)?p:b)[1];
+const P=(c.pts||[]).map(p=>[p[0],p[1]==null?yAt(p[0]):p[1],p[2]]);
+const ys=[0,...S.map(p=>p[1]),...(c.cr||[]).map(p=>p[1]),...P.map(p=>p[1]),...(c.tan||[]).map(p=>p[1])];
+let y0,y1;if(c.yr)[y0,y1]=c.yr;else{y0=Math.floor(Math.min(...ys)-.5);y1=Math.ceil(Math.max(...ys)+.5)}
+const sx=x=>L+(x-x0)/(x1-x0)*(W-L-R),sy=y=>T+(y1-y)/(y1-y0)*(H-T-B),id="k"+(G.n=(G.n||0)+1);
+const ax=y0<=0&&y1>=0?sy(0):sy(y0),ay=x0<=0&&x1>=0?sx(0):sx(x0),st=(y1-y0)>12?2:1;
+let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:520px;direction:ltr" font-size="10"><clipPath id="${id}"><rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}"/></clipPath>`;
+for(let x=Math.ceil(x0);x<=x1;x++)s+=`<line x1="${sx(x)}" y1="${T}" x2="${sx(x)}" y2="${H-B}" stroke="var(--line)"/>`+(x?`<text x="${sx(x)}" y="${ax+11}" text-anchor="middle" fill="var(--muted)">${x}</text>`:"");
+for(let y=Math.ceil(y0);y<=y1;y++)if(y%st==0)s+=`<line x1="${L}" y1="${sy(y)}" x2="${W-R}" y2="${sy(y)}" stroke="var(--line)"/>`+(y?`<text x="${ay-4}" y="${sy(y)+3}" text-anchor="end" fill="var(--muted)">${y}</text>`:"");
+s+=`<line x1="${L}" y1="${ax}" x2="${W-R}" y2="${ax}" stroke="var(--fg)"/><line x1="${ay}" y1="${T}" x2="${ay}" y2="${H-B}" stroke="var(--fg)"/><text x="${W-R-2}" y="${ax-4}" text-anchor="end" fill="var(--fg)">x</text><text x="${ay+5}" y="${T+9}" fill="var(--fg)">y</text><g clip-path="url(#${id})">`;
+if(S.length)s+=`<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${S.map(p=>sx(p[0])+","+sy(p[1])).join(" ")}"/>`;
+if(c.cr){const a=c.cr;let d=`M${sx(a[0][0])},${sy(a[0][1])}`;for(let i=0;i<a.length-1;i++){const p0=a[i-1]||a[i],p1=a[i],p2=a[i+1],p3=a[i+2]||p2;d+=`C${sx(p1[0]+(p2[0]-p0[0])/6)},${sy(p1[1]+(p2[1]-p0[1])/6)} ${sx(p2[0]-(p3[0]-p1[0])/6)},${sy(p2[1]-(p3[1]-p1[1])/6)} ${sx(p2[0])},${sy(p2[1])}`}s+=`<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`}
+const dx=c.dx||.8;
+(c.tan||[]).forEach(t=>{s+=`<line x1="${sx(t[0]-dx)}" y1="${sy(t[1]-t[2]*dx)}" x2="${sx(t[0]+dx)}" y2="${sy(t[1]+t[2]*dx)}" stroke="var(--bad)" stroke-width="2" stroke-dasharray="5 3"/>`});
+s+="</g>";
+(c.tan||[]).forEach(t=>{if(t[3])s+=`<text x="${sx(t[0])+8}" y="${sy(t[1])-10}" fill="var(--bad)" font-weight="700">${t[3]}</text>`});
+P.forEach(p=>{s+=`<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="4.5" fill="var(--fg)"/>`+(p[2]?`<text x="${sx(p[0])+7}" y="${sy(p[1])+15}" fill="var(--fg)" font-weight="700">${p[2]}</text>`:"")});
+return `<div class="gr">${s}</svg>${c.cap?`<small>${c.cap}</small>`:""}</div>`}
+const PS=["חיובי","שלילי","אפס"], T=["נכון","לא נכון","לא ניתן לדעת"], K=["השיפוע אפס והיא נקודת קיצון","השיפוע אפס אך היא אינה נקודת קיצון","השיפוע אינו אפס"], M=["מקסימום","מינימום","לא קיצון"];
+const Q=[
+{t:"1. קריאת שיפוע מגרף",d:"לפניכם גרף של f. קבעו מה סימן השיפוע בנקודות המסומנות:",
+ g:{f:x=>x**3/3-x**2-3*x,xr:[-3,5.5],yr:[-11,4],pts:[[-2,null,"A"],[0,null,"B"],[2,null,"C"],[5,null,"D"]]},
+ parts:[
+ {l:"בנקודה A",o:PS,a:0,w:"הגרף עולה שם, ולכן השיפוע חיובי."},
+ {l:"בנקודה B",o:PS,a:1,w:"הגרף יורד שם, ולכן השיפוע שלילי."},
+ {l:"בנקודה C",o:PS,a:1,w:"הגרף יורד שם."},
+ {l:"בנקודה D",o:PS,a:0,w:"הגרף עולה שם."},
+ {l:"באילו ערכי x השיפוע שווה אפס?",o:["x = −1 ו-x = 3","x = 0 בלבד","x = −2 ו-x = 5","בשום נקודה"],a:0,w:"בנקודות שבהן הגרף מחליף כיוון, משיק אופקי: x = −1 (מקסימום) ו-x = 3 (מינימום)."}],
+ s:"חיובי, שלילי, שלילי, חיובי. השיפוע אפס ב-x = −1 וב-x = 3."},
+{t:"2. סימון",d:"לפניכם גרף של f עם משיקים בנקודות A ו-B.",
+ g:{f:x=>4.25-(x-2.5)**2,xr:[-.5,5.5],yr:[-2,5],pts:[[1,2,"A"],[4,2,"B"]],tan:[[1,2,3],[4,2,-3]]},
+ parts:[
+ {l:"השיפוע ב-A (x = 1) הוא 3. הסימון הנכון:",o:["f'(1) = 3","f(1) = 3","f'(3) = 1"],a:0,w:"f' מסמן שיפוע, וערך ה-x בסוגריים."},
+ {l:"ערך הפונקציה ב-A הוא 2. הסימון הנכון:",o:["f(1) = 2","f'(1) = 2","f(2) = 1"],a:0,w:"ערך הפונקציה: f(x), כאשר x = 1."},
+ {l:"שיפוע המשיק ב-B (x = 4) מסומן:",o:["f'(4) = −3","f'(4) = 3","f(4) = −3"],a:0,w:"המשיק ב-B יורד: 3 יחידות למטה על כל יחידה אחת ימינה."}],
+ s:"f'(1) = 3, f(1) = 2, f'(4) = −3."},
+{t:"3. נכון / לא נכון / לא ניתן לדעת",d:"לפניכם חלק מגרף הפונקציה f, והמשיק בנקודה A(2, −3).",
+ g:{f:x=>.5*(x-2)**2-3,xr:[-1,5],yr:[-4,3],pts:[[2,-3,"A(2, −3)"]],tan:[[2,-3,0]]},
+ parts:[
+ {l:"f(2) = −3",o:T,a:0,w:"A(2, −3) על הגרף."},
+ {l:"f(−3) = 2",o:T,a:2,w:"x = −3 מחוץ לחלק הגרף שמוצג."},
+ {l:"f'(2) = −3",o:T,a:1,w:"המשיק ב-A אופקי, ולכן השיפוע 0."},
+ {l:"f'(2) = 0",o:T,a:0,w:"משיק אופקי = שיפוע אפס."},
+ {l:"f'(−3) = 2",o:T,a:2,w:"אין מידע על x = −3."}],
+ s:"נכון, לא ניתן לדעת, לא נכון, נכון, לא ניתן לדעת."},
+{t:"4. נקודות חשודות",d:"לפניכם גרף של f. לכל נקודה מסומנת קבעו:",
+ g:{fp:x=>-(x+3)*x*(x-3.5)**2/40,xr:[-4,5],pts:[[-3,null,"A"],[0,null,"B"],[3.5,null,"C"],[2,null,"D"],[-1,null,"E"]]},
+ parts:[
+ {l:"נקודה A",o:K,a:0,w:"שפל של הגרף: משיק אופקי וקיצון (מינימום)."},
+ {l:"נקודה B",o:K,a:0,w:"שיא של הגרף: משיק אופקי וקיצון (מקסימום)."},
+ {l:"נקודה C",o:K,a:1,w:"המשיק אופקי, אך הגרף יורד משני צדדיה."},
+ {l:"נקודה D",o:K,a:2,w:"הגרף יורד בה בבירור, והמשיק אינו אופקי."},
+ {l:"נקודה E",o:K,a:2,w:"הגרף עולה בה, והמשיק אינו אופקי."},
+ {l:"האם כל נקודה שבה השיפוע אפס היא נקודת קיצון?",o:["כן, תמיד","לא, יש דוגמה נגדית","לא ניתן לדעת"],a:1,w:"הנקודה C היא דוגמה נגדית."}],
+ s:"A: מינימום. B: מקסימום. C: שיפוע אפס אך לא קיצון. D ו-E: השיפוע אינו אפס. לא כל נקודה בעלת שיפוע אפס היא קיצון."},
+{t:"5. קו ישר",d:"לפניכם גרף של f (קו ישר). מצאו:",
+ g:{f:x=>2*x+1,xr:[-2,4],yr:[-4,10],pts:[[0,1,"(0, 1)"],[3,7,"(3, 7)"]]},
+ parts:[
+ {l:"f'(−4) =",o:["0","2","3","6"],a:1,w:"בקו ישר השיפוע זהה בכל הנקודות."},
+ {l:"f'(10) =",o:["0","2","3","6"],a:1,w:"אותו שיפוע, 2."}],
+ s:"שיפוע הקו = (7−1)/(3−0) = 2, והוא קבוע. לכן f'(−4) = f'(10) = 2."},
+{t:"6. התאמת גרף לתנאים",d:"בכל אחד מהגרפים מסומנת הנקודה שבה x = 1. קבעו לכל גרף מה מתקיים בנקודה זו:",
+ g:[{f:x=>2.5-.5*x*x,xr:[-3,4],yr:[-5,5],pts:[[1,null,"x=1"]],cap:"גרף א"},
+ {f:x=>(x+1)**2/2-.5,xr:[-3,4],yr:[-5,5],pts:[[1,null,"x=1"]],cap:"גרף ב"},
+ {f:x=>.5*(x+1)**2-4,xr:[-3,4],yr:[-5,5],pts:[[1,null,"x=1"]],cap:"גרף ג"},
+ {f:x=>1.5+Math.sin(x),xr:[-3,4],yr:[-5,5],pts:[[1,null,"x=1"]],cap:"גרף ד"}],
+ parts:[
+ {l:"גרף א",o:["f(1)>0 ו-f'(1)<0","f(1)>0 ו-f'(1)>0","f(1)<0"],a:0,w:"הנקודה מעל ציר x והגרף יורד בה."},
+ {l:"גרף ב",o:["f(1)>0 ו-f'(1)<0","f(1)>0 ו-f'(1)>0","f(1)<0"],a:1,w:"הנקודה מעל ציר x והגרף עולה בה."},
+ {l:"גרף ג",o:["f(1)>0 ו-f'(1)<0","f(1)>0 ו-f'(1)>0","f(1)<0"],a:2,w:"הנקודה מתחת לציר x, ולכן f(1)<0."},
+ {l:"גרף ד",o:["f(1)>0 ו-f'(1)<0","f(1)>0 ו-f'(1)>0","f(1)<0"],a:1,w:"הנקודה מעל ציר x והגרף עולה בה."}],
+ s:"א: f(1)>0 ו-f'(1)<0. ב: f(1)>0 ו-f'(1)>0. ג: f(1)<0. ד: f(1)>0 ו-f'(1)>0. רק גרף א מתאים לתנאים f(1)>0 ו-f'(1)<0."},
+{t:"7. סימני f ו-f'",d:"נתון גרף הפונקציה f(x). מבין הנקודות המסומנות, מצאו את הנקודה המקיימת כל אחד מהתנאים:",
+ g:{f:x=>.1*x**4-x*x+1,xr:[-3.7,3.7],yr:[-3,6],pts:[[-3.3,null,"A"],[-2.236,null,"B"],[-1.5,null,"C"],[-1.0616,0,"D"],[0,null,"E"],[1.0616,0,"F"],[1.5,null,"G"],[3.3,null,"H"]]},
+ parts:[
+ {l:"f(x) חיובי ו-f'(x) חיובי",o:["A","B","C","D","E","F","G","H"],a:7,w:"מעל ציר x והגרף עולה."},
+ {l:"f(x) חיובי ו-f'(x) שלילי",o:["A","B","C","D","E","F","G","H"],a:0,w:"מעל ציר x והגרף יורד."},
+ {l:"f(x) שלילי ו-f'(x) שלילי",o:["A","B","C","D","E","F","G","H"],a:6,w:"מתחת לציר x והגרף יורד."},
+ {l:"f(x) שלילי ו-f'(x) חיובי",o:["A","B","C","D","E","F","G","H"],a:2,w:"מתחת לציר x והגרף עולה."},
+ {l:"f(x) אפס ו-f'(x) חיובי",o:["A","B","C","D","E","F","G","H"],a:3,w:"על ציר x והגרף עולה."},
+ {l:"f(x) אפס ו-f'(x) שלילי",o:["A","B","C","D","E","F","G","H"],a:5,w:"על ציר x והגרף יורד."},
+ {l:"f(x) חיובי ו-f'(x) אפס",o:["A","B","C","D","E","F","G","H"],a:4,w:"מעל ציר x ומשיק אופקי (שיא)."},
+ {l:"f(x) שלילי ו-f'(x) אפס",o:["A","B","C","D","E","F","G","H"],a:1,w:"מתחת לציר x ומשיק אופקי (שפל)."}],
+ s:"חיובי וחיובי: H. חיובי ושלילי: A. שלילי ושלילי: G. שלילי וחיובי: C. אפס וחיובי: D. אפס ושלילי: F. חיובי ואפס: E. שלילי ואפס: B."},
+{t:"8. שרטוט",d:"שרטטו במחברת גרף של פונקציה המקיימת:<br>א) f(3) = 2 ו-f'(3) > 0<br>ב) f(3) = 2 ו-f'(3) < 0<br>ג) f(1) < 0 ו-f'(1) > 0, ויש לה נקודת קיצון אחת<br>ד) f(1) > 0 ו-f'(1) < 0, ויש לה שתי נקודות קיצון",
+ g:{xr:[-4,4],yr:[-4,4],cap:"מערכת צירים לשרטוט"},
+ parts:[],open:true,
+ s:"א) הגרף עובר דרך (3, 2) ועולה שם. ב) הגרף עובר דרך (3, 2) ויורד שם. ג) הגרף מתחת לציר x ב-x = 1 ועולה שם, ויש לו קיצון אחד בלבד, למשל מקסימום מימין ל-x = 1. ד) הגרף מעל ציר x ב-x = 1 ויורד שם, ויש לו שני קיצונים. יש הרבה פתרונות נכונים."},
+{t:"9. איזה גרף הוא הגרף של f?",d:"נתון f(−1) = 0 ו-f'(−1) < 0. בכל גרף מסומן x = −1.",
+ g:[{f:x=>.4*(x+1)*(x+3),xr:[-4,4],yr:[-4,4],pts:[[-1,null,"x=−1"]],cap:"גרף א"},
+ {f:x=>.4*(x-1)**2-1.6,xr:[-4,4],yr:[-4,4],pts:[[-1,null,"x=−1"]],cap:"גרף ב"},
+ {f:x=>.25*(x-1)**2,xr:[-4,4],yr:[-4,4],pts:[[-1,null,"x=−1"]],cap:"גרף ג"},
+ {f:x=>-.5*(x+1)**2,xr:[-4,4],yr:[-4,4],pts:[[-1,null,"x=−1"]],cap:"גרף ד"}],
+ parts:[{l:"איזה גרף מתאים?",o:["גרף א","גרף ב","גרף ג","גרף ד"],a:1,w:"רק בגרף ב הגרף עובר דרך (−1, 0) והוא יורד שם."}],
+ s:"גרף ב. א: עובר דרך (−1, 0) אך עולה שם. ג: f(−1) = 1. ד: f(−1) = 0 אך השיפוע שם אפס."}
+];
+
+const root=document.getElementById("qs");
+Q.forEach((q,i)=>{
+  const c=document.createElement("div");c.className="card";
+  let h=`<h2>${q.t}</h2>`+(q.d?`<p>${q.d}</p>`:"")+(q.g?[].concat(q.g).map(G).join(""):"");
+  q.parts.forEach((p,j)=>{
+    h+=`<div class="part" id="p${i}_${j}"><span class="lbl">${p.l}</span><select><option value="">בחרו…</option>${p.o.map((x,k)=>`<option value="${k}">${x}</option>`).join("")}</select><span class="mark"></span><span class="why">${p.w}</span></div>`;
+  });
+  h+=`<div class="actions">${q.open?"":`<button data-c="${i}">בדיקה</button>`}<button class="ghost" data-s="${i}">הצגת פתרון</button></div><div class="sol" id="s${i}">${q.s}${q.sg?G(q.sg):""}</div>`;
+  c.innerHTML=h;root.appendChild(c);
+});
+const gradable=Q.filter(q=>q.parts.length).length;
+const done=new Set();
+function check(i){
+  let all=true;
+  Q[i].parts.forEach((p,j)=>{
+    const el=document.getElementById(`p${i}_${j}`),v=el.querySelector("select").value;
+    el.classList.remove("ok","bad");
+    if(v===""){all=false;return}
+    const ok=+v===p.a;el.classList.add(ok?"ok":"bad");
+    el.querySelector(".mark").textContent=ok?"✓":"✗";
+    if(!ok)all=false;
+  });
+  all?done.add(i):done.delete(i);
+  document.getElementById("score").textContent=`${done.size} / ${gradable}`;
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.c!==undefined)check(+b.dataset.c);
+  if(b.dataset.s!==undefined)document.getElementById("s"+b.dataset.s).classList.toggle("show");
+  if(b.id==="tm")document.body.classList.toggle("teacher");
+});
+document.getElementById("score").textContent=`0 / ${gradable}`;
+function finish(){
+  const res=document.getElementById("res");let un=null;
+  Q.forEach((q,i)=>q.parts.forEach((p,j)=>{if(un===null&&document.querySelector(`#p${i}_${j} select`).value==="")un=`p${i}_${j}`}));
+  if(un){res.innerHTML=`<p>עדיין יש סעיפים ללא תשובה. ענו על כולם ולחצו שוב.</p>`;document.getElementById(un).scrollIntoView({block:"center"});return}
+  let tot=0,ok=0,rows="";
+  Q.forEach((q,i)=>{if(!q.parts.length)return;check(i);const c=q.parts.filter((p,j)=>document.getElementById(`p${i}_${j}`).classList.contains("ok")).length;tot+=q.parts.length;ok+=c;rows+=`<li>${q.t}: ${c} מתוך ${q.parts.length}</li>`});
+  const sk=Q.filter(q=>!q.parts.length).map(q=>q.t.split(".")[0]).join(" ו-");
+  res.innerHTML=`<div class="grade">${Math.round(ok/tot*100)}</div><p>${ok} מתוך ${tot} סעיפים נכונים</p><ul>${rows}</ul><p class="note">שאלת השרטוט (${sk}) אינה נכללת בציון.</p>`;
+}
+</script>
+</body>
+</html>
